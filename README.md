@@ -37,27 +37,19 @@ for (_, symbol) in graph.symbols {
 
 ## CSS classes
 
-Sigil uses Prism-compatible token classes:
+Sigil defaults to [Prism](https://prismjs.com)-compatible CSS classes but also ships with a [highlight.js](https://highlightjs.org) mapping. You can pass a different mapping to both `renderDeclaration` and `renderFragment`:
 
-| Fragment kind | CSS class |
-|---|---|
-| Keywords (`func`, `class`, `let`, ...) | `token keyword` |
-| Attributes (`@discardableResult`, ...) | `token attribute atrule` |
-| Type identifiers, generic parameters | `token class-name` |
-| Type definition names (`struct Foo`, `enum Bar`, ...) | `token class-name` |
-| Function/method definition names (`func run`, ...) | `token function-definition function` |
-| Property, variable, and enum case names | _(no wrapper)_ |
-| Text (punctuation, whitespace) | _(no wrapper)_ |
-
-When rendering a full declaration via `renderDeclaration`, Sigil uses the symbol's kind to determine how `.identifier` fragments are highlighted — matching what Prism itself would produce for equivalent Swift code.
+```swift
+let html = Sigil.renderDeclaration(symbol: symbol, mapping: .highlightJS)
+```
 
 ## API
 
-### `Sigil.renderDeclaration(symbol:)`
+### `Sigil.renderDeclaration(symbol:mapping:)`
 
 Renders a full symbol declaration as syntax-highlighted HTML. Handles short/long formatting, attribute placement, and context-aware identifier highlighting based on the symbol kind.
 
-### `Sigil.renderFragment(_:identifierClass:)`
+### `Sigil.renderFragment(_:identifierClass:mapping:)`
 
 Renders a single declaration fragment as a syntax-highlighted `<span>`. The optional `identifierClass` parameter controls how `.identifier` fragments are rendered (defaults to `.functionDefinition`).
 

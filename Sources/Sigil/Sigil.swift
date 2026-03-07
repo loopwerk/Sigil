@@ -1,5 +1,51 @@
 import SymbolKit
 
+/// A mapping from declaration fragment kinds to CSS class names.
+///
+/// Use `nil` for any property to render that token as plain text without a wrapper `<span>`.
+public struct CSSMapping {
+  public var keyword: String?
+  public var attribute: String?
+  public var typeName: String?
+  public var functionDefinition: String?
+  public var typeDefinition: String?
+  public var propertyDefinition: String?
+
+  public init(
+    keyword: String? = nil,
+    attribute: String? = nil,
+    typeName: String? = nil,
+    functionDefinition: String? = nil,
+    typeDefinition: String? = nil,
+    propertyDefinition: String? = nil
+  ) {
+    self.keyword = keyword
+    self.attribute = attribute
+    self.typeName = typeName
+    self.functionDefinition = functionDefinition
+    self.typeDefinition = typeDefinition
+    self.propertyDefinition = propertyDefinition
+  }
+
+  /// [Prism](https://prismjs.com)-compatible CSS classes.
+  public static let prism = CSSMapping(
+    keyword: "token keyword",
+    attribute: "token attribute atrule",
+    typeName: "token class-name",
+    functionDefinition: "token function-definition function",
+    typeDefinition: "token class-name"
+  )
+
+  /// [highlight.js](https://highlightjs.org)-compatible CSS classes.
+  public static let highlightJS = CSSMapping(
+    keyword: "hljs-keyword",
+    attribute: "hljs-meta",
+    typeName: "hljs-type",
+    functionDefinition: "hljs-title function_",
+    typeDefinition: "hljs-title class_"
+  )
+}
+
 public enum Sigil {
   /// Escapes HTML special characters in a string.
   public static func escapeHTML(_ string: String) -> String {
@@ -12,35 +58,29 @@ public enum Sigil {
 
   /// Renders a single declaration fragment as a syntax-highlighted HTML span.
   ///
-  /// Uses [Prism](https://prismjs.com)-compatible CSS class names:
-  /// - `.keyword` for language keywords (`func`, `class`, `let`, etc.)
-  /// - `.attribute.atrule` for attributes (`@discardableResult`, etc.)
-  /// - `.class-name` for type identifiers and generic parameters
-  /// - `.function-definition.function` for function/method identifiers
-  /// - Plain text for everything else (punctuation, whitespace)
-  ///
   /// The `identifierClass` parameter controls how `.identifier` fragments are rendered,
   /// since SymbolKit uses `.identifier` for all declared names regardless of symbol kind.
   public static func renderFragment(
     _ fragment: SymbolGraph.Symbol.DeclarationFragments.Fragment,
-    identifierClass: IdentifierClass = .functionDefinition
+    identifierClass: IdentifierClass = .functionDefinition,
+    mapping: CSSMapping = .prism
   ) -> String {
     let text = escapeHTML(fragment.spelling)
     switch fragment.kind {
       case .keyword:
-        return #"<span class="token keyword">\#(text)</span>"#
+        return wrap(text, cssClass: mapping.keyword)
       case .attribute:
-        return #"<span class="token attribute atrule">\#(text)</span>"#
+        return wrap(text, cssClass: mapping.attribute)
       case .typeIdentifier, .genericParameter:
-        return #"<span class="token class-name">\#(text)</span>"#
+        return wrap(text, cssClass: mapping.typeName)
       case .identifier:
         switch identifierClass {
           case .functionDefinition:
-            return #"<span class="token function-definition function">\#(text)</span>"#
-          case .className:
-            return #"<span class="token class-name">\#(text)</span>"#
+            return wrap(text, cssClass: mapping.functionDefinition)
+          case .typeDefinition:
+            return wrap(text, cssClass: mapping.typeDefinition)
           case .plain:
-            return text
+            return wrap(text, cssClass: mapping.propertyDefinition)
         }
       default:
         return text
@@ -49,11 +89,11 @@ public enum Sigil {
 
   /// Controls how `.identifier` fragments are rendered in HTML.
   public enum IdentifierClass {
-    /// Wrap in `<span class="token function-definition function">` — for functions, methods, initializers.
+    /// For functions, methods, initializers.
     case functionDefinition
-    /// Wrap in `<span class="token class-name">` — for structs, enums, protocols, classes, typealiases, associated types.
-    case className
-    /// No wrapper — for properties, enum cases, variables.
+    /// For structs, enums, protocols, classes, typealiases, associated types.
+    case typeDefinition
+    /// For properties, enum cases, variables.
     case plain
   }
 
@@ -61,7 +101,7 @@ public enum Sigil {
   public static func identifierClass(for symbolKind: SymbolGraph.Symbol.KindIdentifier) -> IdentifierClass {
     switch symbolKind {
       case .struct, .enum, .class, .protocol, .typealias, .associatedtype:
-        return .className
+        return .typeDefinition
       case .func, .method, .typeMethod, .`init`, .operator, .subscript, .typeSubscript, .macro, .deinit:
         return .functionDefinition
       default:
@@ -74,9 +114,7 @@ public enum Sigil {
   /// For short declarations (<=80 characters), returns a single-line rendering.
   /// For long declarations with parameters, formats with one parameter per line (2-space indent).
   /// Declaration-level attributes (like `@discardableResult`) are always placed on their own line.
-  ///
-  /// Uses ``renderFragment(_:)`` for syntax highlighting individual tokens.
-  public static func renderDeclaration(symbol: SymbolGraph.Symbol) -> String {
+  public static func renderDeclaration(symbol: SymbolGraph.Symbol, mapping: CSSMapping = .prism) -> String {
     guard let fragments = symbol.declarationFragments else {
       return escapeHTML(symbol.names.title)
     }
@@ -90,13 +128,13 @@ public enum Sigil {
           first.kind == .attribute || (first.kind == .text && first.spelling.trimmingCharacters(in: .whitespaces).isEmpty && attrPrefix.hasSuffix("\n"))
     {
       if first.kind == .attribute {
-        attrPrefix += renderFragment(first) + "\n"
+        attrPrefix += renderFragment(first, mapping: mapping) + "\n"
       }
       bodyFragments = bodyFragments.dropFirst()
     }
 
     let bodyPlainText = bodyFragments.map(\.spelling).joined()
-    let bodyInline = bodyFragments.map { renderFragment($0, identifierClass: idClass) }.joined()
+    let bodyInline = bodyFragments.map { renderFragment($0, identifierClass: idClass, mapping: mapping) }.joined()
 
     // If the body (without attributes) fits on one line, just add attribute prefix
     guard bodyPlainText.count > 80 else { return attrPrefix + bodyInline }
@@ -117,7 +155,7 @@ public enum Sigil {
 
     for fragment in bodyFragments {
       guard fragment.kind == .text else {
-        result += renderFragment(fragment, identifierClass: idClass)
+        result += renderFragment(fragment, identifierClass: idClass, mapping: mapping)
         continue
       }
 
@@ -163,5 +201,10 @@ public enum Sigil {
     }
 
     return result
+  }
+
+  private static func wrap(_ text: String, cssClass: String?) -> String {
+    guard let cssClass else { return text }
+    return #"<span class="\#(cssClass)">\#(text)</span>"#
   }
 }
