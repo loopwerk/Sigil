@@ -72,7 +72,7 @@ final class SigilTests: XCTestCase {
     let sym = symbol(named: "FileIO")
     XCTAssertEqual(
       Sigil.renderDeclaration(symbol: sym),
-      #"<span class="token keyword">struct</span> <span class="token function-definition function">FileIO</span>"#
+      #"<span class="token keyword">struct</span> <span class="token class-name">FileIO</span>"#
     )
   }
 
@@ -152,7 +152,7 @@ final class SigilTests: XCTestCase {
     let sym = symbol(path: "Saga.allItems")
     XCTAssertEqual(
       Sigil.renderDeclaration(symbol: sym),
-      #"<span class="token keyword">var</span> <span class="token function-definition function">allItems</span>: [any <span class="token class-name">AnyItem</span>] { get }"#
+      #"<span class="token keyword">var</span> allItems: [any <span class="token class-name">AnyItem</span>] { get }"#
     )
   }
 
@@ -160,7 +160,7 @@ final class SigilTests: XCTestCase {
     let sym = symbol(named: "diskAccess")
     XCTAssertEqual(
       Sigil.renderDeclaration(symbol: sym),
-      #"<span class="token keyword">static</span> <span class="token keyword">var</span> <span class="token function-definition function">diskAccess</span>: <span class="token class-name">FileIO</span>"#
+      #"<span class="token keyword">static</span> <span class="token keyword">var</span> diskAccess: <span class="token class-name">FileIO</span>"#
     )
   }
 
@@ -168,7 +168,7 @@ final class SigilTests: XCTestCase {
     let sym = symbol(named: "ItemWriteMode.moveToSubfolder")
     XCTAssertEqual(
       Sigil.renderDeclaration(symbol: sym),
-      #"<span class="token keyword">case</span> <span class="token function-definition function">moveToSubfolder</span>"#
+      #"<span class="token keyword">case</span> moveToSubfolder"#
     )
   }
 
@@ -176,7 +176,7 @@ final class SigilTests: XCTestCase {
     let sym = symbol(named: "Reader.Converter")
     XCTAssertEqual(
       Sigil.renderDeclaration(symbol: sym),
-      #"<span class="token keyword">typealias</span> <span class="token function-definition function">Converter</span> = (<span class="token class-name">Path</span>) <span class="token keyword">async</span> <span class="token keyword">throws</span> -&gt; (title: <span class="token class-name">String</span>?, body: <span class="token class-name">String</span>, frontmatter: [<span class="token class-name">String</span> : <span class="token class-name">String</span>]?)"#
+      #"<span class="token keyword">typealias</span> <span class="token class-name">Converter</span> = (<span class="token class-name">Path</span>) <span class="token keyword">async</span> <span class="token keyword">throws</span> -&gt; (title: <span class="token class-name">String</span>?, body: <span class="token class-name">String</span>, frontmatter: [<span class="token class-name">String</span> : <span class="token class-name">String</span>]?)"#
     )
   }
 
@@ -184,7 +184,7 @@ final class SigilTests: XCTestCase {
     let sym = symbol(named: "ItemWriteMode")
     XCTAssertEqual(
       Sigil.renderDeclaration(symbol: sym),
-      #"<span class="token keyword">enum</span> <span class="token function-definition function">ItemWriteMode</span>"#
+      #"<span class="token keyword">enum</span> <span class="token class-name">ItemWriteMode</span>"#
     )
   }
 

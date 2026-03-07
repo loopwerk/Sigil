@@ -44,18 +44,22 @@ Sigil uses Prism-compatible token classes:
 | Keywords (`func`, `class`, `let`, ...) | `token keyword` |
 | Attributes (`@discardableResult`, ...) | `token attribute atrule` |
 | Type identifiers, generic parameters | `token class-name` |
-| Identifiers (names) | `token function-definition function` |
+| Type definition names (`struct Foo`, `enum Bar`, ...) | `token class-name` |
+| Function/method definition names (`func run`, ...) | `token function-definition function` |
+| Property, variable, and enum case names | _(no wrapper)_ |
 | Text (punctuation, whitespace) | _(no wrapper)_ |
+
+When rendering a full declaration via `renderDeclaration`, Sigil uses the symbol's kind to determine how `.identifier` fragments are highlighted — matching what Prism itself would produce for equivalent Swift code.
 
 ## API
 
 ### `Sigil.renderDeclaration(symbol:)`
 
-Renders a full symbol declaration as syntax-highlighted HTML. Handles short/long formatting and attribute placement.
+Renders a full symbol declaration as syntax-highlighted HTML. Handles short/long formatting, attribute placement, and context-aware identifier highlighting based on the symbol kind.
 
-### `Sigil.renderFragment(_:)`
+### `Sigil.renderFragment(_:identifierClass:)`
 
-Renders a single declaration fragment as a syntax-highlighted `<span>`.
+Renders a single declaration fragment as a syntax-highlighted `<span>`. The optional `identifierClass` parameter controls how `.identifier` fragments are rendered (defaults to `.functionDefinition`).
 
 ### `Sigil.escapeHTML(_:)`
 

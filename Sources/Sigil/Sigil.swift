@@ -16,9 +16,15 @@ public enum Sigil {
   /// - `.keyword` for language keywords (`func`, `class`, `let`, etc.)
   /// - `.attribute.atrule` for attributes (`@discardableResult`, etc.)
   /// - `.class-name` for type identifiers and generic parameters
-  /// - `.function-definition.function` for identifiers (function/variable names)
+  /// - `.function-definition.function` for function/method identifiers
   /// - Plain text for everything else (punctuation, whitespace)
-  public static func renderFragment(_ fragment: SymbolGraph.Symbol.DeclarationFragments.Fragment) -> String {
+  ///
+  /// The `identifierClass` parameter controls how `.identifier` fragments are rendered,
+  /// since SymbolKit uses `.identifier` for all declared names regardless of symbol kind.
+  public static func renderFragment(
+    _ fragment: SymbolGraph.Symbol.DeclarationFragments.Fragment,
+    identifierClass: IdentifierClass = .functionDefinition
+  ) -> String {
     let text = escapeHTML(fragment.spelling)
     switch fragment.kind {
       case .keyword:
@@ -28,9 +34,38 @@ public enum Sigil {
       case .typeIdentifier, .genericParameter:
         return #"<span class="token class-name">\#(text)</span>"#
       case .identifier:
-        return #"<span class="token function-definition function">\#(text)</span>"#
+        switch identifierClass {
+          case .functionDefinition:
+            return #"<span class="token function-definition function">\#(text)</span>"#
+          case .className:
+            return #"<span class="token class-name">\#(text)</span>"#
+          case .plain:
+            return text
+        }
       default:
         return text
+    }
+  }
+
+  /// Controls how `.identifier` fragments are rendered in HTML.
+  public enum IdentifierClass {
+    /// Wrap in `<span class="token function-definition function">` — for functions, methods, initializers.
+    case functionDefinition
+    /// Wrap in `<span class="token class-name">` — for structs, enums, protocols, classes, typealiases, associated types.
+    case className
+    /// No wrapper — for properties, enum cases, variables.
+    case plain
+  }
+
+  /// Returns the appropriate ``IdentifierClass`` for a symbol kind.
+  public static func identifierClass(for symbolKind: SymbolGraph.Symbol.KindIdentifier) -> IdentifierClass {
+    switch symbolKind {
+      case .struct, .enum, .class, .protocol, .typealias, .associatedtype:
+        return .className
+      case .func, .method, .typeMethod, .`init`, .operator, .subscript, .typeSubscript, .macro, .deinit:
+        return .functionDefinition
+      default:
+        return .plain
     }
   }
 
@@ -46,6 +81,8 @@ public enum Sigil {
       return escapeHTML(symbol.names.title)
     }
 
+    let idClass = identifierClass(for: symbol.kind.identifier)
+
     // Separate declaration-level attributes (like @discardableResult) from the rest.
     var attrPrefix = ""
     var bodyFragments = fragments[...]
@@ -59,7 +96,7 @@ public enum Sigil {
     }
 
     let bodyPlainText = bodyFragments.map(\.spelling).joined()
-    let bodyInline = bodyFragments.map { renderFragment($0) }.joined()
+    let bodyInline = bodyFragments.map { renderFragment($0, identifierClass: idClass) }.joined()
 
     // If the body (without attributes) fits on one line, just add attribute prefix
     guard bodyPlainText.count > 80 else { return attrPrefix + bodyInline }
@@ -80,7 +117,7 @@ public enum Sigil {
 
     for fragment in bodyFragments {
       guard fragment.kind == .text else {
-        result += renderFragment(fragment)
+        result += renderFragment(fragment, identifierClass: idClass)
         continue
       }
 
