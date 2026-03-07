@@ -1,8 +1,6 @@
 # Sigil
 
-Render Swift [SymbolKit](https://github.com/swiftlang/swift-docc-symbolkit) declarations as syntax-highlighted HTML.
-
-Takes the declaration fragments from a symbol graph (as produced by the SwiftPM command `swift package dump-symbol-graph`) and turns them into HTML with [Prism](https://prismjs.com)-compatible CSS classes, with smart multi-line formatting for long function signatures.
+Takes the declaration fragments from a [SymbolKit](https://github.com/swiftlang/swift-docc-symbolkit) symbol graph (as produced by the SwiftPM command `swift package dump-symbol-graph`) and turns them into syntax-highlighted HTML, with smart multi-line formatting for long function signatures.
 
 ## Installation
 
@@ -45,11 +43,7 @@ Sigil defaults to [Prism](https://prismjs.com)-compatible CSS classes but also s
 let html = Sigil.renderDeclaration(symbol: symbol, cssMapping: .highlightJS)
 ```
 
-Pass `nil` to skip CSS classes entirely and get plain HTML-escaped text — useful when a client-side syntax highlighter handles tokenization:
-
-```swift
-let html = Sigil.renderDeclaration(symbol: symbol, cssMapping: nil)
-```
+Pass `nil` to skip CSS classes entirely and get plain HTML-escaped text. Useful when a client-side syntax highlighter (such as prism.js) handles tokenization.
 
 ## API
 
