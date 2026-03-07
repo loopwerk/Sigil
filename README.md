@@ -40,16 +40,22 @@ for (_, symbol) in graph.symbols {
 Sigil defaults to [Prism](https://prismjs.com)-compatible CSS classes but also ships with a [highlight.js](https://highlightjs.org) mapping. You can pass a different mapping to both `renderDeclaration` and `renderFragment`:
 
 ```swift
-let html = Sigil.renderDeclaration(symbol: symbol, mapping: .highlightJS)
+let html = Sigil.renderDeclaration(symbol: symbol, cssMapping: .highlightJS)
+```
+
+Pass `nil` to skip CSS classes entirely and get plain HTML-escaped text — useful when a client-side syntax highlighter handles tokenization:
+
+```swift
+let html = Sigil.renderDeclaration(symbol: symbol, cssMapping: nil)
 ```
 
 ## API
 
-### `Sigil.renderDeclaration(symbol:mapping:)`
+### `Sigil.renderDeclaration(symbol:cssMapping:)`
 
 Renders a full symbol declaration as syntax-highlighted HTML. Handles short/long formatting, attribute placement, and context-aware identifier highlighting based on the symbol kind.
 
-### `Sigil.renderFragment(_:identifierClass:mapping:)`
+### `Sigil.renderFragment(_:identifierClass:cssMapping:)`
 
 Renders a single declaration fragment as a syntax-highlighted `<span>`. The optional `identifierClass` parameter controls how `.identifier` fragments are rendered (defaults to `.functionDefinition`).
 

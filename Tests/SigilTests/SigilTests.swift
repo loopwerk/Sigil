@@ -188,6 +188,43 @@ final class SigilTests: XCTestCase {
     )
   }
 
+  // MARK: - renderDeclaration without CSS mapping
+
+  func testNilMappingShort() {
+    let sym = symbol(named: "FileIO")
+    XCTAssertEqual(
+      Sigil.renderDeclaration(symbol: sym, cssMapping: nil),
+      "struct FileIO"
+    )
+  }
+
+  // swiftformat:disable all
+  func testNilMappingLong() {
+    let sym = symbol(named: "init(input:output:fileIO:originFilePath:)")
+    let expected = """
+init(
+  input: Path,
+  output: Path = &quot;deploy&quot;,
+  fileIO: FileIO = .diskAccess,
+  originFilePath: StaticString = #file
+) throws
+"""
+    XCTAssertEqual(Sigil.renderDeclaration(symbol: sym, cssMapping: nil), expected)
+  }
+
+  func testNilMappingWithAttribute() {
+    let sym = symbol(named: "createPage(_:using:)")
+    let expected = """
+@discardableResult
+func createPage(
+  _ output: Path,
+  using renderer: @escaping (PageRenderingContext) async throws -&gt; String
+) -&gt; Self
+"""
+    XCTAssertEqual(Sigil.renderDeclaration(symbol: sym, cssMapping: nil), expected)
+  }
+  // swiftformat:enable all
+
   func testNoDeclarationFragmentsFallsBackToTitle() throws {
     let json = """
     {

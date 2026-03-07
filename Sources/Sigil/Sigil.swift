@@ -63,24 +63,25 @@ public enum Sigil {
   public static func renderFragment(
     _ fragment: SymbolGraph.Symbol.DeclarationFragments.Fragment,
     identifierClass: IdentifierClass = .functionDefinition,
-    mapping: CSSMapping = .prism
+    cssMapping: CSSMapping? = .prism
   ) -> String {
     let text = escapeHTML(fragment.spelling)
+    guard let cssMapping else { return text }
     switch fragment.kind {
       case .keyword:
-        return wrap(text, cssClass: mapping.keyword)
+        return wrap(text, cssClass: cssMapping.keyword)
       case .attribute:
-        return wrap(text, cssClass: mapping.attribute)
+        return wrap(text, cssClass: cssMapping.attribute)
       case .typeIdentifier, .genericParameter:
-        return wrap(text, cssClass: mapping.typeName)
+        return wrap(text, cssClass: cssMapping.typeName)
       case .identifier:
         switch identifierClass {
           case .functionDefinition:
-            return wrap(text, cssClass: mapping.functionDefinition)
+            return wrap(text, cssClass: cssMapping.functionDefinition)
           case .typeDefinition:
-            return wrap(text, cssClass: mapping.typeDefinition)
+            return wrap(text, cssClass: cssMapping.typeDefinition)
           case .plain:
-            return wrap(text, cssClass: mapping.propertyDefinition)
+            return wrap(text, cssClass: cssMapping.propertyDefinition)
         }
       default:
         return text
@@ -114,7 +115,7 @@ public enum Sigil {
   /// For short declarations (<=80 characters), returns a single-line rendering.
   /// For long declarations with parameters, formats with one parameter per line (2-space indent).
   /// Declaration-level attributes (like `@discardableResult`) are always placed on their own line.
-  public static func renderDeclaration(symbol: SymbolGraph.Symbol, mapping: CSSMapping = .prism) -> String {
+  public static func renderDeclaration(symbol: SymbolGraph.Symbol, cssMapping: CSSMapping? = .prism) -> String {
     guard let fragments = symbol.declarationFragments else {
       return escapeHTML(symbol.names.title)
     }
@@ -128,13 +129,13 @@ public enum Sigil {
           first.kind == .attribute || (first.kind == .text && first.spelling.trimmingCharacters(in: .whitespaces).isEmpty && attrPrefix.hasSuffix("\n"))
     {
       if first.kind == .attribute {
-        attrPrefix += renderFragment(first, mapping: mapping) + "\n"
+        attrPrefix += renderFragment(first, cssMapping: cssMapping) + "\n"
       }
       bodyFragments = bodyFragments.dropFirst()
     }
 
     let bodyPlainText = bodyFragments.map(\.spelling).joined()
-    let bodyInline = bodyFragments.map { renderFragment($0, identifierClass: idClass, mapping: mapping) }.joined()
+    let bodyInline = bodyFragments.map { renderFragment($0, identifierClass: idClass, cssMapping: cssMapping) }.joined()
 
     // If the body (without attributes) fits on one line, just add attribute prefix
     guard bodyPlainText.count > 80 else { return attrPrefix + bodyInline }
@@ -155,7 +156,7 @@ public enum Sigil {
 
     for fragment in bodyFragments {
       guard fragment.kind == .text else {
-        result += renderFragment(fragment, identifierClass: idClass, mapping: mapping)
+        result += renderFragment(fragment, identifierClass: idClass, cssMapping: cssMapping)
         continue
       }
 
