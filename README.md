@@ -9,8 +9,10 @@ Takes the declaration fragments from a symbol graph (as produced by the SwiftPM 
 Add Sigil as a dependency in your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/loopwerk/Sigil", from: "1.0.0"),
+.package(url: "https://github.com/loopwerk/Sigil", branch: "main"),
 ```
+
+(Since SymbolKit doesn't have normal releases, sadly Sigil has to depend on their main branch, which then infects the whole dependency tree.)
 
 Then add it to your target:
 
