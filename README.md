@@ -1,6 +1,12 @@
+<p align="center">
+  <img src="logo.svg" width="200" alt="Sigil" />
+</p>
+
 # Sigil
 
 Takes the declaration fragments from a [SymbolKit](https://github.com/swiftlang/swift-docc-symbolkit) symbol graph (as produced by the SwiftPM command `swift package dump-symbol-graph`) and turns them into syntax-highlighted HTML, with smart multi-line formatting for long function signatures.
+
+![Output example](example.png)
 
 ## Installation
 
